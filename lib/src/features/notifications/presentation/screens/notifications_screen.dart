@@ -46,7 +46,8 @@ class NotificationsScreen extends ConsumerWidget {
                   SizedBox(height: 120),
                   EmptyState(
                     title: 'Belum ada notifikasi',
-                    message: 'Update booking dan pembayaran dari admin akan muncul di sini.',
+                    message:
+                        'Update booking dan pembayaran dari admin akan muncul di sini.',
                     icon: Icons.notifications_none_rounded,
                   ),
                 ],
@@ -60,7 +61,9 @@ class NotificationsScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
               itemCount: items.length + 1,
-              separatorBuilder: (_, index) => index == 0 ? const SizedBox(height: 16) : const SizedBox(height: 10),
+              separatorBuilder: (_, index) => index == 0
+                  ? const SizedBox(height: 16)
+                  : const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 if (index == 0) return const _NotificationInfoCard();
 
@@ -69,7 +72,9 @@ class NotificationsScreen extends ConsumerWidget {
                   item: item,
                   onOpenBooking: item.bookingId == null
                       ? null
-                      : () => context.push('${BookingDetailScreen.route}/${item.bookingId}'),
+                      : () => context.push(
+                          '${BookingDetailScreen.route}/${item.bookingId}',
+                        ),
                 );
               },
             ),
@@ -101,7 +106,11 @@ class _NotificationInfoCard extends StatelessWidget {
               color: AppColors.primary,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.payments_rounded, color: Colors.white, size: 20),
+            child: const Icon(
+              Icons.payments_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           const Expanded(
@@ -109,12 +118,12 @@ class _NotificationInfoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Status pembayaran dari admin',
+                  'Status pembayaran',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Saat admin confirm atau reject pembayaran, backend akan mengirim push notification ke HP kamu dan menyimpannya di halaman ini.',
+                  'Setelah melakukan pembayaran, admin akan memverifikasi pembayaran kamu. Status pembayaran akan muncul di notifikasi ini.',
                   style: TextStyle(color: AppColors.muted, height: 1.45),
                 ),
               ],
@@ -137,13 +146,13 @@ class _NotificationCard extends StatelessWidget {
     final color = item.isPaymentConfirmed
         ? AppColors.success
         : item.isPaymentRejected
-            ? AppColors.danger
-            : AppColors.primary;
+        ? AppColors.danger
+        : AppColors.primary;
     final icon = item.isPaymentConfirmed
         ? Icons.verified_rounded
         : item.isPaymentRejected
-            ? Icons.cancel_rounded
-            : Icons.notifications_rounded;
+        ? Icons.cancel_rounded
+        : Icons.notifications_rounded;
 
     return Card(
       child: InkWell(
@@ -175,7 +184,9 @@ class _NotificationCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 item.title,
-                                style: const TextStyle(fontWeight: FontWeight.w900),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                             ),
                             _StatusPill(label: item.statusText, color: color),
@@ -184,7 +195,10 @@ class _NotificationCard extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           item.message,
-                          style: const TextStyle(color: AppColors.ink, height: 1.45),
+                          style: const TextStyle(
+                            color: AppColors.ink,
+                            height: 1.45,
+                          ),
                         ),
                       ],
                     ),
@@ -194,11 +208,18 @@ class _NotificationCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.schedule_rounded, size: 16, color: Colors.grey.shade500),
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 16,
+                    color: Colors.grey.shade500,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     timeAgo(item.createdAt),
-                    style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 12,
+                    ),
                   ),
                   const Spacer(),
                   if (onOpenBooking != null)
@@ -213,7 +234,11 @@ class _NotificationCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 4),
-                        Icon(Icons.chevron_right_rounded, color: AppColors.primary, size: 18),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
                       ],
                     ),
                 ],
