@@ -26,18 +26,24 @@ class BookingCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       booking.date,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                   StatusChip(status: booking.status),
                 ],
               ),
               const SizedBox(height: 10),
-              Text('${booking.startTime} - ${booking.endTime} • ${booking.durationHrs.toStringAsFixed(1)} jam'),
+              Text(
+                '${booking.startTime} - ${booking.endTime} • ${formatDurationHours(booking.durationHrs)}',
+              ),
               const SizedBox(height: 8),
               Text(
                 formatRupiah(booking.totalPrice),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
               ),
             ],
           ),
