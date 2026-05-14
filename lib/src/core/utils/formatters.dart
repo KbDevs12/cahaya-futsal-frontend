@@ -8,9 +8,11 @@ final _rupiah = NumberFormat.currency(
 
 String formatRupiah(num value) => _rupiah.format(value);
 
-String formatDate(DateTime value) => DateFormat('EEEE, d MMM yyyy', 'id_ID').format(value);
+String formatDate(DateTime value) =>
+    DateFormat('EEEE, d MMM yyyy', 'id_ID').format(value);
 
-String formatDateTime(DateTime value) => DateFormat('d MMM yyyy, HH:mm', 'id_ID').format(value);
+String formatDateTime(DateTime value) =>
+    DateFormat('d MMM yyyy, HH:mm', 'id_ID').format(value);
 
 String ymd(DateTime value) => DateFormat('yyyy-MM-dd').format(value);
 
@@ -24,4 +26,20 @@ String timeAgo(DateTime value) {
   if (diff.inDays < 7) return '${diff.inDays} hari lalu';
 
   return formatDateTime(value.toLocal());
+}
+
+String formatDurationHours(num value) {
+  final rounded = value.round();
+
+  if ((value - rounded).abs() < 0.001) {
+    return '$rounded jam';
+  }
+
+  final hours = value.floor();
+  final minutes = ((value - hours) * 60).round();
+
+  if (hours <= 0) return '$minutes menit';
+  if (minutes <= 0) return '$hours jam';
+
+  return '$hours jam $minutes menit';
 }
