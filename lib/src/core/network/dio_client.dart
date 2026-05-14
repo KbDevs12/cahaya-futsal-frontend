@@ -14,7 +14,7 @@ class DioClient {
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 20),
         receiveTimeout: const Duration(seconds: 20),
-        headers: {"Content-Type": "application/json"},
+        headers: {'Content-Type': 'application/json'},
       ),
     );
 
@@ -23,15 +23,15 @@ class DioClient {
         onRequest: (options, handler) async {
           final token = await tokenReader();
           if (token != null && token.isNotEmpty) {
-            options.headers["Authorization"] = "Bearer $token";
+            options.headers['Authorization'] = 'Bearer $token';
           }
           handler.next(options);
         },
         onError: (error, handler) {
-          final data = error.response?.data;
-          final message = data is Map<String, dynamic>
-              ? (data['message'] ?? 'Request gagal').toString()
-              : error.message ?? 'Request gagal';
+          final message =
+              _extractBackendMessage(error.response?.data) ??
+              friendlyErrorMessage(error);
+
           handler.reject(
             DioException(
               requestOptions: error.requestOptions,
@@ -48,5 +48,13 @@ class DioClient {
     );
 
     return dio;
+  }
+
+  static String? _extractBackendMessage(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final message = data['message']?.toString().trim();
+      if (message != null && message.isNotEmpty) return message;
+    }
+    return null;
   }
 }
