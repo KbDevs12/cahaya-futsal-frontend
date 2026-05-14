@@ -55,7 +55,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             SizedBox(height: 18),
             Text(
-              'Arena',
+              'Cahaya Futsal',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
             ),
             SizedBox(height: 10),
