@@ -9,6 +9,7 @@ import '../../../../core/errors/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/snackbar.dart';
+import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/page_padding.dart';
 import '../../../../shared/widgets/primary_button.dart';
@@ -54,7 +55,12 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
 
       final bytes = await image.readAsBytes();
       if (bytes.length > 5 * 1024 * 1024) {
-        if (mounted) showSnack(context, 'Ukuran bukti pembayaran maksimal 5MB');
+        if (mounted)
+          showSnack(
+            context,
+            'Ukuran bukti pembayaran maksimal 5MB',
+            isError: true,
+          );
         return;
       }
 
@@ -63,7 +69,8 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
         _selectedBytes = bytes;
       });
     } catch (error) {
-      if (mounted) showSnack(context, AppException("").errorMessage(error));
+      if (mounted)
+        showSnack(context, friendlyErrorMessage(error), isError: true);
     }
   }
 
@@ -71,7 +78,7 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
     final bytes = _selectedBytes;
     final image = _selectedImage;
     if (bytes == null || image == null) {
-      showSnack(context, 'Pilih gambar bukti pembayaran dulu');
+      showSnack(context, 'Pilih gambar bukti pembayaran dulu', isError: true);
       return;
     }
 
@@ -94,14 +101,14 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
         _submittedProofUrl = result.proofImageUrl;
       });
 
-      if (mounted) {
+      if (mounted)
         showSnack(
           context,
           'Bukti pembayaran dikirim. Menunggu verifikasi admin.',
         );
-      }
     } catch (error) {
-      if (mounted) showSnack(context, AppException("").errorMessage(error));
+      if (mounted)
+        showSnack(context, friendlyErrorMessage(error), isError: true);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -122,50 +129,58 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
         data: (payment) => PagePadding(
           child: ListView(
             children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.qr_code_2_rounded,
-                        size: 42,
-                        color: AppColors.primary,
+              AppCard(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    const IconBadge(icon: Icons.qr_code_2_rounded, size: 62),
+                    const SizedBox(height: 14),
+                    Text(
+                      formatRupiah(payment.amount),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Scan QRIS di bawah ini dari aplikasi pembayaran kamu.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.muted, height: 1.45),
+                    ),
+                    const SizedBox(height: 22),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(color: AppColors.line),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        formatRupiah(payment.amount),
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.w900),
+                      child: QrImageView(
+                        data: payment.qrCode,
+                        size: 250,
+                        backgroundColor: Colors.white,
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Scan QRIS di bawah ini dari aplikasi pembayaran kamu.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.muted),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      const SizedBox(height: 22),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.line),
-                        ),
-                        child: QrImageView(
-                          data: payment.qrCode,
-                          size: 250,
-                          backgroundColor: Colors.white,
-                        ),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(.10),
+                        borderRadius: BorderRadius.circular(999),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
+                      child: Text(
                         'Berlaku sampai ${payment.expiredAt.toLocal()}',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: AppColors.muted),
+                        style: const TextStyle(
+                          color: AppColors.warning,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 18),
@@ -179,10 +194,22 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
                 onSubmit: _submitProof,
               ),
               const SizedBox(height: 18),
-              const Text(
-                'Setelah bukti pembayaran dikirim, admin akan melakukan verifikasi dari admin panel. Status terbaru akan masuk ke halaman Notifikasi.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.muted, height: 1.5),
+              const AppCard(
+                color: AppColors.primarySoft,
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: AppColors.primary),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Setelah bukti pembayaran dikirim, admin akan melakukan verifikasi. Status terbaru akan masuk ke halaman Notifikasi.',
+                        style: TextStyle(color: AppColors.muted, height: 1.45),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -214,143 +241,136 @@ class _PaymentProofCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (submitted) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: const [
-                  Icon(Icons.verified_rounded, color: AppColors.success),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Bukti pembayaran terkirim',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              const StatusChip(status: 'awaiting_verification'),
-              const SizedBox(height: 14),
-              const Text(
-                'Pembayaran kamu sedang menunggu verifikasi admin. Kamu akan mendapat notifikasi setelah pembayaran dikonfirmasi atau ditolak.',
-                style: TextStyle(color: AppColors.muted, height: 1.5),
-              ),
-              if (submittedProofUrl != null &&
-                  submittedProofUrl!.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                Text(
-                  submittedProofUrl!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
+      return AppCard(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.verified_rounded, color: AppColors.success),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Bukti pembayaran terkirim',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 14),
+            const StatusChip(status: 'awaiting_verification'),
+            const SizedBox(height: 14),
+            const Text(
+              'Pembayaran kamu sedang menunggu verifikasi admin. Kamu akan mendapat notifikasi setelah pembayaran dikonfirmasi atau ditolak.',
+              style: TextStyle(color: AppColors.muted, height: 1.5),
+            ),
+            if (submittedProofUrl != null && submittedProofUrl!.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Text(
+                submittedProofUrl!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
-          ),
+          ],
         ),
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Upload Bukti Pembayaran',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Setelah bayar, upload screenshot/bukti pembayaran. Admin akan cek dari admin panel.',
-              style: TextStyle(color: AppColors.muted, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              borderRadius: BorderRadius.circular(22),
-              onTap: submitting ? null : onPickImage,
-              child: Container(
-                height: selectedBytes == null ? 132 : 220,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(.06),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppColors.line),
-                ),
-                child: selectedBytes == null
-                    ? const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.cloud_upload_rounded,
-                            color: AppColors.primary,
-                            size: 36,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            'Pilih gambar bukti pembayaran',
-                            style: TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'JPG, PNG, atau WEBP maksimal 5MB',
-                            style: TextStyle(
-                              color: AppColors.muted,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(22),
-                        child: Image.memory(
-                          selectedBytes!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
+    return AppCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Upload bukti pembayaran',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Setelah bayar, upload screenshot/bukti pembayaran. Admin akan cek dari admin panel.',
+            style: TextStyle(color: AppColors.muted, height: 1.5),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: submitting ? null : onPickImage,
+            child: Container(
+              height: selectedBytes == null ? 142 : 230,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: selectedBytes == null
+                  ? const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.cloud_upload_rounded,
+                          color: AppColors.primary,
+                          size: 38,
                         ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Pilih gambar bukti pembayaran',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'JPG, PNG, atau WEBP maksimal 5MB',
+                          style: TextStyle(
+                            color: AppColors.muted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    )
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.memory(
+                        selectedBytes!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
                       ),
-              ),
+                    ),
             ),
-            if (selectedBytes != null) ...[
-              const SizedBox(height: 10),
-              TextButton.icon(
-                onPressed: submitting ? null : onPickImage,
-                icon: const Icon(Icons.swap_horiz_rounded),
-                label: const Text('Ganti gambar'),
-              ),
-            ],
-            const SizedBox(height: 14),
-            TextField(
-              controller: noteController,
-              enabled: !submitting,
-              minLines: 2,
-              maxLines: 4,
-              maxLength: 500,
-              decoration: const InputDecoration(
-                labelText: 'Catatan opsional',
-                hintText: 'Contoh: Sudah bayar via QRIS jam 13.20',
-              ),
-            ),
-            const SizedBox(height: 8),
-            PrimaryButton(
-              label: 'Kirim Bukti Pembayaran',
-              isLoading: submitting,
-              onPressed: selectedBytes == null ? null : onSubmit,
+          ),
+          if (selectedBytes != null) ...[
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: submitting ? null : onPickImage,
+              icon: const Icon(Icons.swap_horiz_rounded),
+              label: const Text('Ganti gambar'),
             ),
           ],
-        ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: noteController,
+            enabled: !submitting,
+            minLines: 2,
+            maxLines: 4,
+            maxLength: 500,
+            decoration: const InputDecoration(
+              labelText: 'Catatan opsional',
+              hintText: 'Contoh: Sudah bayar via QRIS jam 13.20',
+            ),
+          ),
+          const SizedBox(height: 8),
+          PrimaryButton(
+            label: 'Kirim Bukti Pembayaran',
+            icon: Icons.send_rounded,
+            isLoading: submitting,
+            onPressed: selectedBytes == null ? null : onSubmit,
+          ),
+        ],
       ),
     );
   }
