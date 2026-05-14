@@ -112,8 +112,7 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
                             ),
                             _InfoRow(
                               label: 'Durasi',
-                              value:
-                                  '${booking.durationHrs.toStringAsFixed(1)} jam',
+                              value: formatDurationHours(booking.durationHrs),
                             ),
                             _InfoRow(
                               label: 'Total',
