@@ -12,8 +12,20 @@ class StatusChip extends StatelessWidget {
     final normalized = status.toLowerCase();
     final color = switch (normalized) {
       'paid' || 'confirmed' || 'completed' => AppColors.success,
-      'cancelled' || 'rejected' => AppColors.danger,
+      'cancelled' || 'rejected' || 'payment_rejected' => AppColors.danger,
+      'awaiting_verification' || 'waiting_confirmation' => AppColors.primary,
       _ => AppColors.warning,
+    };
+
+    final label = switch (normalized) {
+      'pending' || 'pending_payment' => 'MENUNGGU PEMBAYARAN',
+      'awaiting_verification' ||
+      'waiting_confirmation' => 'MENUNGGU VERIFIKASI',
+      'paid' || 'confirmed' => 'DIKONFIRMASI',
+      'completed' => 'SELESAI',
+      'cancelled' => 'DIBATALKAN',
+      'rejected' || 'payment_rejected' => 'DITOLAK',
+      _ => status.replaceAll('_', ' ').toUpperCase(),
     };
 
     return Container(
@@ -23,7 +35,7 @@ class StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        status.replaceAll('_', ' ').toUpperCase(),
+        label,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w800,
