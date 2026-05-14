@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -123,7 +124,14 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
     final qr = ref.watch(paymentQrProvider(widget.bookingId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pembayaran QRIS')),
+      appBar: AppBar(
+        title: const Text('Pembayaran QRIS'),
+        leading: IconButton(
+          tooltip: 'Kembali ke Beranda',
+          onPressed: () => context.go("/"),
+          icon: const Icon(Icons.home_rounded),
+        ),
+      ),
       body: qr.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => ErrorView(
@@ -198,19 +206,28 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
                 onSubmit: _submitProof,
               ),
               const SizedBox(height: 18),
-              const AppCard(
+              AppCard(
                 color: AppColors.primarySoft,
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline_rounded, color: AppColors.primary),
-                    SizedBox(width: 12),
-                    Expanded(
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
                       child: Text(
                         'Setelah bukti pembayaran dikirim, admin akan melakukan verifikasi. Status terbaru akan masuk ke halaman Notifikasi.',
                         style: TextStyle(color: AppColors.muted, height: 1.45),
                       ),
+                    ),
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      onPressed: () => context.go('/'),
+                      icon: const Icon(Icons.home_rounded),
+                      label: const Text('Kembali ke Beranda'),
                     ),
                   ],
                 ),
