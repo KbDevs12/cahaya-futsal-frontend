@@ -55,12 +55,13 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
 
       final bytes = await image.readAsBytes();
       if (bytes.length > 5 * 1024 * 1024) {
-        if (mounted)
+        if (mounted) {
           showSnack(
             context,
             'Ukuran bukti pembayaran maksimal 5MB',
             isError: true,
           );
+        }
         return;
       }
 
@@ -69,8 +70,9 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
         _selectedBytes = bytes;
       });
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, friendlyErrorMessage(error), isError: true);
+      }
     }
   }
 
@@ -101,14 +103,16 @@ class _PaymentQrScreenState extends ConsumerState<PaymentQrScreen> {
         _submittedProofUrl = result.proofImageUrl;
       });
 
-      if (mounted)
+      if (mounted) {
         showSnack(
           context,
           'Bukti pembayaran dikirim. Menunggu verifikasi admin.',
         );
+      }
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, friendlyErrorMessage(error), isError: true);
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
