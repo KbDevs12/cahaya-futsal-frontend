@@ -74,7 +74,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Setelah daftar, Firebase akan mengirim email verifikasi.',
+                'Setelah daftar, cek email untuk verifikasi, lalu login dengan email dan password yang sudah dibuat.',
               ),
               const SizedBox(height: 24),
               AppTextField(
