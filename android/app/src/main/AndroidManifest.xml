@@ -5,7 +5,6 @@
         android:label="Cahaya Futsal"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
-        android:roundIcon="@mipmap/launcher_icon_round"
         android:allowBackup="false"
         android:fullBackupContent="false">
         <activity
