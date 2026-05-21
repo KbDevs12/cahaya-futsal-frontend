@@ -199,107 +199,157 @@ class ProfileScreen extends ConsumerWidget {
     WidgetRef ref,
     UserProfile user,
   ) async {
-    final nameController = TextEditingController(text: user.name);
-    final phoneController = TextEditingController(text: user.phone);
-    bool saving = false;
-
-    await showModalBottomSheet<void>(
+    final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return Container(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 16,
-              bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
-            ),
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: AppColors.line,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Edit profile',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Data ini dipakai admin untuk menghubungi kamu terkait booking.',
-                  style: TextStyle(color: AppColors.muted, height: 1.45),
-                ),
-                const SizedBox(height: 18),
-                AppTextField(
-                  controller: nameController,
-                  label: 'Nama lengkap',
-                  prefixIcon: Icons.badge_outlined,
-                ),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: phoneController,
-                  label: 'Nomor HP',
-                  prefixIcon: Icons.phone_outlined,
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 18),
-                PrimaryButton(
-                  label: 'Simpan Perubahan',
-                  icon: Icons.check_rounded,
-                  isLoading: saving,
-                  onPressed: () async {
-                    setModalState(() => saving = true);
-                    try {
-                      await ref
-                          .read(profileRepositoryProvider)
-                          .updateProfile(
-                            name: nameController.text,
-                            phone: phoneController.text,
-                          );
-                      ref.invalidate(profileProvider);
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        showSnack(context, 'Profile berhasil diperbarui');
-                      }
-                    } catch (error) {
-                      if (context.mounted) {
-                        showSnack(
-                          context,
-                          friendlyErrorMessage(error),
-                          isError: true,
-                        );
-                      }
-                    } finally {
-                      if (context.mounted) setModalState(() => saving = false);
-                    }
-                  },
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+      useSafeArea: true,
+      builder: (_) => _EditProfileSheet(user: user),
     );
 
-    nameController.dispose();
-    phoneController.dispose();
+    if (saved == true && context.mounted) {
+      showSnack(context, 'Profile berhasil diperbarui');
+    }
+  }
+}
+
+class _EditProfileSheet extends ConsumerStatefulWidget {
+  const _EditProfileSheet({required this.user});
+
+  final UserProfile user;
+
+  @override
+  ConsumerState<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _phoneController;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.user.name);
+    _phoneController = TextEditingController(text: widget.user.phone);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+
+    FocusScope.of(context).unfocus();
+    setState(() => _saving = true);
+
+    var resetSavingState = true;
+    try {
+      await ref
+          .read(profileRepositoryProvider)
+          .updateProfile(
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim(),
+          );
+      ref.invalidate(profileProvider);
+
+      if (!mounted) return;
+      resetSavingState = false;
+      Navigator.of(context).pop(true);
+    } catch (error) {
+      if (!mounted) return;
+      showSnack(context, friendlyErrorMessage(error), isError: true);
+    } finally {
+      if (mounted && resetSavingState) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 16,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: AppColors.line,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Edit profile',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Data ini dipakai admin untuk menghubungi kamu terkait booking.',
+            style: TextStyle(color: AppColors.muted, height: 1.45),
+          ),
+          const SizedBox(height: 18),
+          AppTextField(
+            controller: _nameController,
+            label: 'Nama lengkap',
+            prefixIcon: Icons.badge_outlined,
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 12),
+          AppTextField(
+            controller: _phoneController,
+            label: 'Nomor HP',
+            prefixIcon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.done,
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _saving
+                      ? null
+                      : () => Navigator.of(context).pop(false),
+                  child: const Text('Batal'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: PrimaryButton(
+                  label: 'Simpan Perubahan',
+                  icon: Icons.check_rounded,
+                  isLoading: _saving,
+                  onPressed: _save,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
