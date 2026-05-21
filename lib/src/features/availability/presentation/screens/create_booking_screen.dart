@@ -49,9 +49,47 @@ class _CreateBookingScreenState extends ConsumerState<CreateBookingScreen> {
     });
   }
 
+  DateTime? _bookingDate() {
+    final parsed = DateTime.tryParse(widget.field.date);
+    if (parsed == null) return null;
+    return DateTime(parsed.year, parsed.month, parsed.day);
+  }
+
+  bool _isTodayBookingDate() {
+    final bookingDate = _bookingDate();
+    if (bookingDate == null) return false;
+
+    final now = DateTime.now();
+    return bookingDate.year == now.year &&
+        bookingDate.month == now.month &&
+        bookingDate.day == now.day;
+  }
+
+  bool _isPastStartTime(String start) {
+    if (!_isTodayBookingDate()) return false;
+
+    final now = DateTime.now();
+    final currentBookableHour = now.minute == 0 && now.second == 0
+        ? now.hour
+        : now.hour + 1;
+    final startHour = int.parse(start.split(':').first);
+
+    return startHour < currentBookableHour;
+  }
+
   Future<void> _submit() async {
     if (_startTime == null || _endTime == null) {
       showSnack(context, 'Pilih jam mulai dan selesai dulu');
+      return;
+    }
+
+    if (_isPastStartTime(_startTime!)) {
+      showSnack(context, 'Jam tersebut sudah lewat untuk hari ini');
+      return;
+    }
+
+    if (_isBooked(_startTime!)) {
+      showSnack(context, 'Jam mulai tersebut sudah dibooking');
       return;
     }
 
@@ -81,17 +119,16 @@ class _CreateBookingScreenState extends ConsumerState<CreateBookingScreen> {
   @override
   Widget build(BuildContext context) {
     final hours = _hours();
-    final endOptions =
-        _startTime == null
-              ? <String>[]
-              : hours
-                    .where(
-                      (h) =>
-                          int.parse(h.split(':').first) >
-                          int.parse(_startTime!.split(':').first),
-                    )
-                    .toList()
-          ..add(widget.field.closeTime);
+    final endOptions = _startTime == null
+        ? <String>[]
+        : [
+            ...hours.where(
+              (h) =>
+                  int.parse(h.split(':').first) >
+                  int.parse(_startTime!.split(':').first),
+            ),
+            widget.field.closeTime,
+          ];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Buat Booking')),
@@ -139,11 +176,13 @@ class _CreateBookingScreenState extends ConsumerState<CreateBookingScreen> {
               runSpacing: 10,
               children: hours.map((hour) {
                 final booked = _isBooked(hour);
+                final past = _isPastStartTime(hour);
+                final disabled = booked || past;
                 final selected = _startTime == hour;
                 return ChoiceChip(
                   label: Text(hour),
                   selected: selected,
-                  onSelected: booked
+                  onSelected: disabled
                       ? null
                       : (_) => setState(() {
                           _startTime = hour;
@@ -153,6 +192,13 @@ class _CreateBookingScreenState extends ConsumerState<CreateBookingScreen> {
                 );
               }).toList(),
             ),
+            if (_isTodayBookingDate()) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Jam yang sudah lewat untuk hari ini otomatis dinonaktifkan.',
+                style: TextStyle(color: AppColors.muted, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 22),
             Text(
               'Jam selesai',

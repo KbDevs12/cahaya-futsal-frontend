@@ -199,7 +199,7 @@ class _HeroHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: const Text(
-                  'Client App',
+                  'Cahaya Futsal',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
