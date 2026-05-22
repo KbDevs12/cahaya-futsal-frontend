@@ -10,9 +10,19 @@ class FieldCard extends StatelessWidget {
   final FieldAvailability field;
   final VoidCallback onTap;
 
+  String _shortTime(String value) => value.substring(0, 5);
+
   @override
   Widget build(BuildContext context) {
     final disabled = field.isClosed || !field.isAvailable;
+    final scheduleText = field.isClosed
+        ? 'Tutup full day'
+        : 'Buka ${_shortTime(field.openTime)}-${_shortTime(field.closeTime)}';
+    final statusText = field.isClosed
+        ? 'Tutup'
+        : !field.isAvailable
+            ? 'Tidak tersedia'
+            : '${field.bookedSlots.length} booked';
 
     return InkWell(
       onTap: disabled ? null : onTap,
@@ -53,13 +63,13 @@ class FieldCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${field.fieldType} • ${field.openTime}-${field.closeTime}',
+                          '${field.fieldType} • $scheduleText',
                           style: const TextStyle(color: AppColors.muted),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded),
+                  if (!disabled) const Icon(Icons.chevron_right_rounded),
                 ],
               ),
               const SizedBox(height: 18),
@@ -76,11 +86,13 @@ class FieldCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: disabled ? Colors.red.withOpacity(.08) : AppColors.primary.withOpacity(.1),
+                      color: disabled
+                          ? Colors.red.withOpacity(.08)
+                          : AppColors.primary.withOpacity(.1),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      disabled ? 'Tutup' : '${field.bookedSlots.length} booked',
+                      statusText,
                       style: TextStyle(
                         color: disabled ? Colors.red : AppColors.primary,
                         fontWeight: FontWeight.w800,
