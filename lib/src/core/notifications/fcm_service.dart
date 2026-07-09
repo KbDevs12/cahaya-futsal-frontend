@@ -8,16 +8,16 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../storage/token_storage.dart';
 
 class FcmService {
-  FcmService({
-    required Dio dio,
-    required TokenStorage tokenStorage,
-  })  : _dio = dio,
-        _tokenStorage = tokenStorage;
+  FcmService({required Dio dio, required TokenStorage tokenStorage})
+    : _dio = dio,
+      _tokenStorage = tokenStorage;
 
   final Dio _dio;
   final TokenStorage _tokenStorage;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  final StreamController<String> _bookingTapController = StreamController<String>.broadcast();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+  final StreamController<String> _bookingTapController =
+      StreamController<String>.broadcast();
 
   bool _initialized = false;
   String? _initialBookingId;
@@ -25,12 +25,21 @@ class FcmService {
   StreamSubscription<RemoteMessage>? _messageSubscription;
   StreamSubscription<RemoteMessage>? _openedSubscription;
 
-  static const AndroidNotificationChannel _paymentChannel = AndroidNotificationChannel(
-    'payment_status',
-    'Status Pembayaran',
-    description: 'Notifikasi konfirmasi dan penolakan pembayaran booking.',
-    importance: Importance.high,
-  );
+  static const AndroidNotificationChannel _paymentChannel =
+      AndroidNotificationChannel(
+        'payment_status',
+        'Status Pembayaran',
+        description: 'Notifikasi konfirmasi dan penolakan pembayaran booking.',
+        importance: Importance.high,
+      );
+
+  static const AndroidNotificationChannel _adminBookingChannel =
+      AndroidNotificationChannel(
+        'new_booking',
+        'Booking Baru',
+        description: 'Notifikasi booking/order baru untuk admin.',
+        importance: Importance.high,
+      );
 
   Stream<String> get bookingTapStream => _bookingTapController.stream;
 
@@ -60,11 +69,12 @@ class FcmService {
       await _sendTokenToBackend(token);
     }
 
-    _tokenRefreshSubscription ??= FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      final activeJwt = await _tokenStorage.readToken();
-      if (activeJwt == null || activeJwt.isEmpty) return;
-      await _sendTokenToBackend(newToken);
-    });
+    _tokenRefreshSubscription ??= FirebaseMessaging.instance.onTokenRefresh
+        .listen((newToken) async {
+          final activeJwt = await _tokenStorage.readToken();
+          if (activeJwt == null || activeJwt.isEmpty) return;
+          await _sendTokenToBackend(newToken);
+        });
   }
 
   Future<void> unregisterCurrentToken() async {
@@ -102,14 +112,17 @@ class FcmService {
       sound: true,
     );
 
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
   }
 
@@ -128,14 +141,21 @@ class FcmService {
       },
     );
 
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_paymentChannel);
+    final androidNotifications = _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    await androidNotifications?.createNotificationChannel(_paymentChannel);
+    await androidNotifications?.createNotificationChannel(_adminBookingChannel);
   }
 
   Future<void> _setupMessageHandlers() async {
-    _messageSubscription ??= FirebaseMessaging.onMessage.listen(_showForegroundNotification);
-    _openedSubscription ??= FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
+    _messageSubscription ??= FirebaseMessaging.onMessage.listen(
+      _showForegroundNotification,
+    );
+    _openedSubscription ??= FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleMessageTap,
+    );
 
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     _initialBookingId = _bookingIdFrom(initialMessage);
@@ -146,6 +166,9 @@ class FcmService {
     if (notification == null) return;
 
     final bookingId = message.data['booking_id']?.toString();
+    final channel = message.data['type'] == 'new_booking'
+        ? _adminBookingChannel
+        : _paymentChannel;
 
     await _localNotifications.show(
       notification.hashCode,
@@ -153,9 +176,9 @@ class FcmService {
       notification.body,
       NotificationDetails(
         android: AndroidNotificationDetails(
-          _paymentChannel.id,
-          _paymentChannel.name,
-          channelDescription: _paymentChannel.description,
+          channel.id,
+          channel.name,
+          channelDescription: channel.description,
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
