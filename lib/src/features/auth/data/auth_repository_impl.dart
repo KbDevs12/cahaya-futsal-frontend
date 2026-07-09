@@ -11,9 +11,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required FirebaseAuth firebaseAuth,
     required AuthRemoteDataSource remote,
     required TokenStorage tokenStorage,
-  })  : _firebaseAuth = firebaseAuth,
-        _remote = remote,
-        _tokenStorage = tokenStorage;
+  }) : _firebaseAuth = firebaseAuth,
+       _remote = remote,
+       _tokenStorage = tokenStorage;
 
   final FirebaseAuth _firebaseAuth;
   final AuthRemoteDataSource _remote;
@@ -23,7 +23,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthSession?> readSavedSession() => _tokenStorage.readSession();
 
   @override
-  Future<AuthSession> login({required String email, required String password}) async {
+  Future<AuthSession> login({
+    required String email,
+    required String password,
+  }) async {
     final credential = await _firebaseAuth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -39,11 +42,25 @@ class AuthRepositoryImpl implements AuthRepository {
 
     if (!freshUser.emailVerified) {
       await freshUser.sendEmailVerification();
-      throw AppException('Email belum diverifikasi. Link verifikasi sudah dikirim ulang.');
+      throw AppException(
+        'Email belum diverifikasi. Link verifikasi sudah dikirim ulang.',
+      );
     }
 
     final idToken = await freshUser.getIdToken(true);
     final session = await _remote.loginWithFirebaseToken(idToken!);
+    await _tokenStorage.saveSession(session);
+    return session;
+  }
+
+  @override
+  // ignore: override_on_non_overriding_member
+  Future<AuthSession> adminLogin({
+    required String email,
+    required String password,
+  }) async {
+    await _firebaseAuth.signOut();
+    final session = await _remote.adminLogin(email: email, password: password);
     await _tokenStorage.saveSession(session);
     return session;
   }
