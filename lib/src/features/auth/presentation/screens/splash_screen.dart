@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../admin/presentation/screens/admin_booking_detail_screen.dart';
+import '../../../admin/presentation/screens/admin_dashboard_screen.dart';
 import '../providers/auth_providers.dart';
 import 'login_screen.dart';
 
@@ -29,6 +31,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (!mounted) return;
       if (session == null) {
         context.go(LoginScreen.route);
+      } else if (session.isAdmin && initialBookingId != null) {
+        context.go('${AdminBookingDetailScreen.route}/$initialBookingId');
+      } else if (session.isAdmin) {
+        context.go(AdminDashboardScreen.route);
       } else if (initialBookingId != null) {
         context.go('/booking-detail/$initialBookingId');
       } else {

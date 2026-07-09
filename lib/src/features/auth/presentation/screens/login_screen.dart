@@ -9,6 +9,7 @@ import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/page_padding.dart';
 import '../../../../shared/widgets/primary_button.dart';
+import '../../../admin/presentation/screens/admin_dashboard_screen.dart';
 import '../providers/auth_providers.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
@@ -27,6 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _adminMode = false;
 
   @override
   void dispose() {
@@ -37,19 +39,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref
-        .read(authControllerProvider.notifier)
-        .login(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+
+    final controller = ref.read(authControllerProvider.notifier);
+    if (_adminMode) {
+      await controller.adminLogin(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+    } else {
+      await controller.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+    }
 
     final state = ref.read(authControllerProvider);
     if (!mounted) return;
 
     state.whenOrNull(
       data: (session) {
-        if (session != null) context.go('/');
+        if (session == null) return;
+        context.go(session.isAdmin ? AdminDashboardScreen.route : '/');
       },
       error: (error, _) =>
           showSnack(context, friendlyErrorMessage(error), isError: true),
@@ -68,8 +78,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: ListView(
             children: [
               const SizedBox(height: 18),
-              _HeroHeader(),
-              const SizedBox(height: 24),
+              _HeroHeader(adminMode: _adminMode),
+              const SizedBox(height: 20),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment(
+                    value: false,
+                    icon: Icon(Icons.person_rounded),
+                    label: Text('Customer'),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    icon: Icon(Icons.admin_panel_settings_rounded),
+                    label: Text('Admin'),
+                  ),
+                ],
+                selected: {_adminMode},
+                onSelectionChanged: loading
+                    ? null
+                    : (value) => setState(() => _adminMode = value.first),
+              ),
+              const SizedBox(height: 16),
               AppCard(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -118,30 +147,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 10),
                     PrimaryButton(
-                      label: 'Masuk ke Aplikasi',
-                      icon: Icons.login_rounded,
+                      label: _adminMode
+                          ? 'Masuk sebagai Admin'
+                          : 'Masuk ke Aplikasi',
+                      icon: _adminMode
+                          ? Icons.admin_panel_settings_rounded
+                          : Icons.login_rounded,
                       isLoading: loading,
                       onPressed: _submit,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Belum punya akun?',
-                    style: TextStyle(color: AppColors.muted),
-                  ),
-                  TextButton(
-                    onPressed: loading
-                        ? null
-                        : () => context.push(RegisterScreen.route),
-                    child: const Text('Daftar'),
-                  ),
-                ],
-              ),
+              if (!_adminMode) ...[
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Belum punya akun?',
+                      style: TextStyle(color: AppColors.muted),
+                    ),
+                    TextButton(
+                      onPressed: loading
+                          ? null
+                          : () => context.push(RegisterScreen.route),
+                      child: const Text('Daftar'),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                const SizedBox(height: 18),
+                const Text(
+                  'Akun admin dibuat oleh superadmin. Gunakan email/password admin yang sama dengan dashboard lama.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.muted, height: 1.4),
+                ),
+              ],
               const SizedBox(height: 18),
             ],
           ),
@@ -152,6 +194,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 }
 
 class _HeroHeader extends StatelessWidget {
+  const _HeroHeader({required this.adminMode});
+
+  final bool adminMode;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -182,8 +228,10 @@ class _HeroHeader extends StatelessWidget {
                   color: Colors.white.withOpacity(.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
-                  Icons.sports_soccer_rounded,
+                child: Icon(
+                  adminMode
+                      ? Icons.admin_panel_settings_rounded
+                      : Icons.sports_soccer_rounded,
                   color: Colors.white,
                   size: 30,
                 ),
@@ -198,9 +246,9 @@ class _HeroHeader extends StatelessWidget {
                   color: Colors.white.withOpacity(.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Text(
-                  'Cahaya Futsal',
-                  style: TextStyle(
+                child: Text(
+                  adminMode ? 'Admin Mobile' : 'Cahaya Futsal',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
                   ),
@@ -210,7 +258,9 @@ class _HeroHeader extends StatelessWidget {
           ),
           const SizedBox(height: 26),
           Text(
-            'Booking futsal jadi lebih gampang.',
+            adminMode
+                ? 'Kelola futsal dari mobile.'
+                : 'Booking futsal jadi lebih gampang.',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w900,
@@ -218,9 +268,11 @@ class _HeroHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Pilih jadwal, bayar, upload bukti pembayaran, lalu pantau status verifikasi admin dari satu aplikasi.',
-            style: TextStyle(color: Colors.white70, height: 1.55),
+          Text(
+            adminMode
+                ? 'Dashboard, booking, pembayaran, lapangan, user, laporan, dan admin sekarang pindah ke aplikasi mobile.'
+                : 'Pilih jadwal, bayar, upload bukti pembayaran, lalu pantau status verifikasi admin dari satu aplikasi.',
+            style: const TextStyle(color: Colors.white70, height: 1.55),
           ),
         ],
       ),
