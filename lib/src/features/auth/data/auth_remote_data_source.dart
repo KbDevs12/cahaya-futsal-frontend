@@ -20,4 +20,20 @@ class AuthRemoteDataSource {
       mapper: (json) => AuthSession.fromJson(json as Map<String, dynamic>),
     );
   }
+
+  Future<AuthSession> adminLogin({
+    required String email,
+    required String password,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/auth/admin-login',
+      data: {'email': email.trim(), 'password': password},
+    );
+
+    return ApiResponse.parseData(
+      response.data,
+      statusCode: response.statusCode,
+      mapper: (json) => AuthSession.fromJson(json as Map<String, dynamic>),
+    );
+  }
 }
