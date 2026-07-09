@@ -64,6 +64,21 @@ class AuthController extends StateNotifier<AsyncValue<AuthSession?>> {
     });
   }
 
+  Future<void> adminLogin({
+    required String email,
+    required String password,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final session = await _repository.adminLogin(
+        email: email,
+        password: password,
+      );
+      await _fcmService.initializeAndRegister();
+      return session;
+    });
+  }
+
   Future<void> register({
     required String name,
     required String email,
