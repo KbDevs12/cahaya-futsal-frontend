@@ -147,6 +147,18 @@ class AdminRepository {
     );
   }
 
+  Future<void> createUser(Map<String, dynamic> payload) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/admin/users',
+      data: payload,
+    );
+    ApiResponse.parseData(
+      response.data,
+      statusCode: response.statusCode,
+      mapper: (_) => null,
+    );
+  }
+
   Future<AdminUserDetail> userDetail(String id) async {
     final response = await _dio.get<Map<String, dynamic>>('/admin/users/$id');
     return ApiResponse.parseData(
