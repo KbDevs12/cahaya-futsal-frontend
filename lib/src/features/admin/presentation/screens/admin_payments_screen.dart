@@ -111,12 +111,17 @@ class _PaymentFiltersState extends State<_PaymentFilters> {
             items: const [
               DropdownMenuItem(value: null, child: Text('Semua status')),
               DropdownMenuItem(value: 'pending', child: Text('Pending')),
-              DropdownMenuItem(value: 'awaiting_verification', child: Text('Menunggu verifikasi')),
+              DropdownMenuItem(
+                value: 'awaiting_verification',
+                child: Text('Menunggu verifikasi'),
+              ),
               DropdownMenuItem(value: 'paid', child: Text('Paid')),
               DropdownMenuItem(value: 'confirmed', child: Text('Confirmed')),
               DropdownMenuItem(value: 'rejected', child: Text('Rejected')),
             ],
-            onChanged: (value) => ref.read(adminPaymentStatusFilterProvider.notifier).state = value,
+            onChanged: (value) =>
+                ref.read(adminPaymentStatusFilterProvider.notifier).state =
+                    value,
           ),
           const SizedBox(height: 10),
           AppTextField(
@@ -128,19 +133,26 @@ class _PaymentFiltersState extends State<_PaymentFilters> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: Text(date == null ? 'Semua tanggal' : readableDate(date))),
+              Expanded(
+                child: Text(
+                  date == null ? 'Semua tanggal' : readableDate(date),
+                ),
+              ),
               TextButton.icon(
                 onPressed: () async {
                   FocusScope.of(context).unfocus();
-                  ref.read(adminPaymentQueryProvider.notifier).state = _queryController.text.trim();
+                  ref.read(adminPaymentQueryProvider.notifier).state =
+                      _queryController.text.trim();
                   final picked = await showDatePicker(
                     context: context,
                     firstDate: DateTime(2020),
                     lastDate: DateTime(2100),
-                    initialDate: DateTime.tryParse(date ?? '') ?? DateTime.now(),
+                    initialDate:
+                        DateTime.tryParse(date ?? '') ?? DateTime.now(),
                   );
                   if (picked != null) {
-                    ref.read(adminPaymentDateFilterProvider.notifier).state = ymd(picked);
+                    ref.read(adminPaymentDateFilterProvider.notifier).state =
+                        ymd(picked);
                   }
                 },
                 icon: const Icon(Icons.calendar_month_rounded),
@@ -150,13 +162,20 @@ class _PaymentFiltersState extends State<_PaymentFilters> {
                 tooltip: 'Cari',
                 onPressed: () {
                   FocusScope.of(context).unfocus();
-                  ref.read(adminPaymentQueryProvider.notifier).state = _queryController.text.trim();
+                  ref.read(adminPaymentQueryProvider.notifier).state =
+                      _queryController.text.trim();
                 },
                 icon: const Icon(Icons.search_rounded),
               ),
               IconButton(
                 tooltip: 'Reset tanggal',
-                onPressed: date == null ? null : () => ref.read(adminPaymentDateFilterProvider.notifier).state = null,
+                onPressed: date == null
+                    ? null
+                    : () =>
+                          ref
+                                  .read(adminPaymentDateFilterProvider.notifier)
+                                  .state =
+                              null,
                 icon: const Icon(Icons.close_rounded),
               ),
             ],
@@ -188,18 +207,35 @@ class _PaymentCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(payment.customerName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                    Text(
+                      payment.customerName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('${payment.fieldName} • ${readableDate(payment.date)}'),
-                    Text('${readableClock(payment.startTime)}-${readableClock(payment.endTime)}'),
+                    Text(
+                      '${payment.fieldName} • ${readableDate(payment.date)}',
+                    ),
+                    Text(
+                      '${readableClock(payment.startTime)}-${readableClock(payment.endTime)}',
+                    ),
                   ],
                 ),
               ),
-              Text(formatRupiah(payment.amount), style: const TextStyle(fontWeight: FontWeight.w900)),
+              Text(
+                formatRupiah(payment.amount),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
             ],
           ),
           const SizedBox(height: 14),
-          AdminStatusLine(status: payment.paymentStatus, secondary: payment.proofImageUrl.isEmpty ? 'Belum ada bukti' : 'Bukti pembayaran tersedia'),
+          AdminStatusLine(
+            status: payment.paymentStatus,
+            secondary: payment.proofImageUrl.isEmpty
+                ? 'Belum ada bukti'
+                : 'Bukti pembayaran tersedia',
+          ),
         ],
       ),
     );
@@ -212,22 +248,36 @@ class _PaymentDetailSheet extends ConsumerStatefulWidget {
   final AdminPaymentSummary payment;
 
   @override
-  ConsumerState<_PaymentDetailSheet> createState() => _PaymentDetailSheetState();
+  ConsumerState<_PaymentDetailSheet> createState() =>
+      _PaymentDetailSheetState();
 }
 
 class _PaymentDetailSheetState extends ConsumerState<_PaymentDetailSheet> {
   bool _saving = false;
 
+  bool get _canVerify {
+    final status = widget.payment.paymentStatus.toLowerCase();
+    return status == 'pending' || status == 'awaiting_verification';
+  }
+
   Future<void> _action(bool confirm) async {
+    if (!_canVerify) return;
     setState(() => _saving = true);
     try {
       if (confirm) {
-        await ref.read(adminRepositoryProvider).confirmPayment(widget.payment.bookingId);
+        await ref
+            .read(adminRepositoryProvider)
+            .confirmPayment(widget.payment.bookingId);
       } else {
-        await ref.read(adminRepositoryProvider).rejectPayment(widget.payment.bookingId);
+        await ref
+            .read(adminRepositoryProvider)
+            .rejectPayment(widget.payment.bookingId);
       }
       if (!mounted) return;
-      showSnack(context, confirm ? 'Pembayaran dikonfirmasi' : 'Pembayaran ditolak');
+      showSnack(
+        context,
+        confirm ? 'Pembayaran dikonfirmasi' : 'Pembayaran ditolak',
+      );
       Navigator.of(context).pop();
     } catch (error) {
       if (mounted) showAdminError(context, error);
@@ -244,22 +294,39 @@ class _PaymentDetailSheetState extends ConsumerState<_PaymentDetailSheet> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Detail Pembayaran', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text(
+              'Detail Pembayaran',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+            ),
             const SizedBox(height: 14),
             AdminInfoRow(label: 'Customer', value: payment.customerName),
             AdminInfoRow(label: 'Email', value: payment.customerEmail),
             AdminInfoRow(label: 'Lapangan', value: payment.fieldName),
             AdminInfoRow(label: 'Tanggal', value: readableDate(payment.date)),
-            AdminInfoRow(label: 'Jam', value: '${readableClock(payment.startTime)}-${readableClock(payment.endTime)}'),
+            AdminInfoRow(
+              label: 'Jam',
+              value:
+                  '${readableClock(payment.startTime)}-${readableClock(payment.endTime)}',
+            ),
             AdminInfoRow(label: 'Total', value: formatRupiah(payment.amount)),
-            AdminInfoRow(label: 'Submitted', value: readableDateTime(payment.submittedAt)),
-            AdminInfoRow(label: 'Bukti URL', value: payment.proofImageUrl),
+            AdminInfoRow(
+              label: 'Submitted',
+              value: readableDateTime(payment.submittedAt),
+            ),
+            _ProofPaymentRow(imageUrl: payment.proofImageUrl),
             AdminInfoRow(label: 'Catatan', value: payment.proofNote),
             const SizedBox(height: 10),
             Wrap(
@@ -271,27 +338,146 @@ class _PaymentDetailSheetState extends ConsumerState<_PaymentDetailSheet> {
               ],
             ),
             const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _saving ? null : () => _action(false),
-                    icon: const Icon(Icons.close_rounded),
-                    label: const Text('Tolak'),
-                  ),
+            if (!_canVerify)
+              AppCard(
+                child: Row(
+                  children: [
+                    const Icon(Icons.lock_outline_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Pembayaran dengan status ${payment.paymentStatus} sudah final, jadi tidak bisa dikonfirmasi atau ditolak lagi.',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: PrimaryButton(
-                    label: 'Konfirmasi',
-                    icon: Icons.check_rounded,
-                    isLoading: _saving,
-                    onPressed: () => _action(true),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _saving ? null : () => _action(false),
+                      icon: const Icon(Icons.close_rounded),
+                      label: const Text('Tolak'),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PrimaryButton(
+                      label: 'Konfirmasi',
+                      icon: Icons.check_rounded,
+                      isLoading: _saving,
+                      onPressed: () => _action(true),
+                    ),
+                  ),
+                ],
+              ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProofPaymentRow extends StatelessWidget {
+  const _ProofPaymentRow({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasProof = imageUrl.trim().isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            width: 116,
+            child: Text(
+              'Bukti pembayaran',
+              style: TextStyle(color: Colors.black54),
+            ),
+          ),
+          Expanded(
+            child: hasProof
+                ? Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showProofDialog(context),
+                      icon: const Icon(Icons.image_rounded),
+                      label: const Text('Lihat bukti'),
+                    ),
+                  )
+                : const Text(
+                    '-',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showProofDialog(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding: const EdgeInsets.all(18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+                child: Row(
+                  children: [
+                    Text(
+                      'Bukti Pembayaran',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Tutup',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: InteractiveViewer(
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, progress) {
+                      if (progress == null) return child;
+                      return const SizedBox(
+                        height: 260,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const SizedBox(
+                        height: 260,
+                        child: Center(
+                          child: Text('Gagal memuat gambar bukti pembayaran'),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );
