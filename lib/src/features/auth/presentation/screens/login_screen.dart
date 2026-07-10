@@ -176,15 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ],
                 ),
-              ] else ...[
-                const SizedBox(height: 18),
-                const Text(
-                  'Akun admin dibuat oleh superadmin. Gunakan email/password admin yang sama dengan dashboard lama.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.muted, height: 1.4),
-                ),
               ],
-              const SizedBox(height: 18),
             ],
           ),
         ),
@@ -247,7 +239,7 @@ class _HeroHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  adminMode ? 'Admin Mobile' : 'Cahaya Futsal',
+                  'Cahaya Futsal',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
@@ -259,7 +251,7 @@ class _HeroHeader extends StatelessWidget {
           const SizedBox(height: 26),
           Text(
             adminMode
-                ? 'Kelola futsal dari mobile.'
+                ? 'Kelola futsal dari aplikasi mobile.'
                 : 'Booking futsal jadi lebih gampang.',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: Colors.white,
