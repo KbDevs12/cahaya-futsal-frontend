@@ -37,8 +37,9 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
       ref.invalidate(bookingDetailProvider(widget.bookingId));
       if (mounted) showSnack(context, 'Booking berhasil dibatalkan');
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         showSnack(context, friendlyErrorMessage(error), isError: true);
+      }
     } finally {
       if (mounted) setState(() => _cancelling = false);
     }
@@ -184,12 +185,14 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     final normalized = status.toLowerCase();
     if (normalized == 'confirmed' ||
         normalized == 'paid' ||
-        normalized == 'completed')
+        normalized == 'completed') {
       return AppColors.primarySoft;
+    }
     if (normalized == 'rejected' ||
         normalized == 'payment_rejected' ||
-        normalized == 'cancelled')
+        normalized == 'cancelled') {
       return AppColors.danger.withOpacity(.08);
+    }
     return AppColors.warning.withOpacity(.10);
   }
 
@@ -197,12 +200,14 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     final normalized = status.toLowerCase();
     if (normalized == 'confirmed' ||
         normalized == 'paid' ||
-        normalized == 'completed')
+        normalized == 'completed') {
       return AppColors.success;
+    }
     if (normalized == 'rejected' ||
         normalized == 'payment_rejected' ||
-        normalized == 'cancelled')
+        normalized == 'cancelled') {
       return AppColors.danger;
+    }
     return AppColors.warning;
   }
 
@@ -211,12 +216,14 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     if (normalized == 'awaiting_verification') return Icons.fact_check_rounded;
     if (normalized == 'confirmed' ||
         normalized == 'paid' ||
-        normalized == 'completed')
+        normalized == 'completed') {
       return Icons.verified_rounded;
+    }
     if (normalized == 'rejected' ||
         normalized == 'payment_rejected' ||
-        normalized == 'cancelled')
+        normalized == 'cancelled') {
       return Icons.info_outline_rounded;
+    }
     return Icons.schedule_rounded;
   }
 

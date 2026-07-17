@@ -52,20 +52,20 @@ class AppTheme {
         backgroundColor: Colors.white,
         elevation: 0,
         indicatorColor: AppColors.primarySoft,
-        labelTextStyle: MaterialStateProperty.resolveWith(
+        labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
-            color: states.contains(MaterialState.selected)
+            color: states.contains(WidgetState.selected)
                 ? AppColors.primaryDark
                 : AppColors.muted,
-            fontWeight: states.contains(MaterialState.selected)
+            fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w800
                 : FontWeight.w600,
             fontSize: 12,
           ),
         ),
-        iconTheme: MaterialStateProperty.resolveWith(
+        iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
-            color: states.contains(MaterialState.selected)
+            color: states.contains(WidgetState.selected)
                 ? AppColors.primary
                 : AppColors.muted,
           ),

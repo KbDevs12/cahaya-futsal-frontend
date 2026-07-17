@@ -112,7 +112,7 @@ class _BookingFilters extends StatelessWidget {
           const SectionHeader(title: 'Filter Booking'),
           const SizedBox(height: 12),
           DropdownButtonFormField<String?>(
-            value: status,
+            initialValue: status,
             decoration: const InputDecoration(labelText: 'Status'),
             items: const [
               DropdownMenuItem(value: null, child: Text('Semua status')),
@@ -302,7 +302,7 @@ class _BookingDetailSheetState extends ConsumerState<_BookingDetailSheet> {
             StatusChip(status: booking.paymentStatus),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _status,
+              initialValue: _status,
               decoration: const InputDecoration(labelText: 'Status booking'),
               items: const [
                 DropdownMenuItem(
@@ -418,7 +418,7 @@ class _CreateBookingSheetState extends ConsumerState<_CreateBookingSheet> {
                 error: (error, _) =>
                     Text('Gagal load user: ${friendlyErrorMessage(error)}'),
                 data: (items) => DropdownButtonFormField<String>(
-                  value: _userId,
+                  initialValue: _userId,
                   decoration: const InputDecoration(labelText: 'User'),
                   items: items
                       .map(
@@ -437,7 +437,7 @@ class _CreateBookingSheetState extends ConsumerState<_CreateBookingSheet> {
                 error: (error, _) =>
                     Text('Gagal load lapangan: ${friendlyErrorMessage(error)}'),
                 data: (items) => DropdownButtonFormField<String>(
-                  value: _fieldId,
+                  initialValue: _fieldId,
                   decoration: const InputDecoration(labelText: 'Lapangan'),
                   items: items
                       .map(

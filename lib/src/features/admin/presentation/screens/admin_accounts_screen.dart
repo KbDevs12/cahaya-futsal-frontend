@@ -59,7 +59,11 @@ class AdminAccountsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showAdminForm(BuildContext context, WidgetRef ref, [AdminAccountRow? admin]) async {
+  Future<void> _showAdminForm(
+    BuildContext context,
+    WidgetRef ref, [
+    AdminAccountRow? admin,
+  ]) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -83,13 +87,22 @@ class _AdminAccountCard extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          IconBadge(icon: admin.role == 'superadmin' ? Icons.workspace_premium_rounded : Icons.admin_panel_settings_rounded),
+          IconBadge(
+            icon: admin.role == 'superadmin'
+                ? Icons.workspace_premium_rounded
+                : Icons.admin_panel_settings_rounded,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(admin.username, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                Text(
+                  admin.username,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(admin.email),
                 Text(admin.role),
@@ -153,10 +166,17 @@ class _AdminFormSheetState extends ConsumerState<_AdminFormSheet> {
       if (widget.admin == null) {
         await ref.read(adminRepositoryProvider).createAdmin(payload);
       } else {
-        await ref.read(adminRepositoryProvider).updateAdmin(widget.admin!.id, payload);
+        await ref
+            .read(adminRepositoryProvider)
+            .updateAdmin(widget.admin!.id, payload);
       }
       if (!mounted) return;
-      showSnack(context, widget.admin == null ? 'Admin berhasil dibuat' : 'Admin berhasil diperbarui');
+      showSnack(
+        context,
+        widget.admin == null
+            ? 'Admin berhasil dibuat'
+            : 'Admin berhasil diperbarui',
+      );
       Navigator.of(context).pop();
     } catch (error) {
       if (mounted) showAdminError(context, error);
@@ -170,7 +190,8 @@ class _AdminFormSheetState extends ConsumerState<_AdminFormSheet> {
     final ok = await confirmDanger(
       context,
       title: 'Hapus admin?',
-      message: 'Akun ${widget.admin!.username} akan dihapus dari Firebase dan database.',
+      message:
+          'Akun ${widget.admin!.username} akan dihapus dari Firebase dan database.',
     );
     if (!ok) return;
     setState(() => _saving = true);
@@ -190,32 +211,70 @@ class _AdminFormSheetState extends ConsumerState<_AdminFormSheet> {
   Widget build(BuildContext context) {
     final isEdit = widget.admin != null;
     return Container(
-      decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(isEdit ? 'Edit Admin' : 'Tambah Admin', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+              Text(
+                isEdit ? 'Edit Admin' : 'Tambah Admin',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 14),
-              AppTextField(controller: _usernameController, label: 'Username', prefixIcon: Icons.person_rounded, validator: (v) => v == null || v.trim().length < 3 ? 'Minimal 3 karakter' : null),
+              AppTextField(
+                controller: _usernameController,
+                label: 'Username',
+                prefixIcon: Icons.person_rounded,
+                validator: (v) => v == null || v.trim().length < 3
+                    ? 'Minimal 3 karakter'
+                    : null,
+              ),
               const SizedBox(height: 12),
-              AppTextField(controller: _emailController, label: 'Email', prefixIcon: Icons.email_rounded, keyboardType: TextInputType.emailAddress, validator: (v) => v == null || !v.contains('@') ? 'Email tidak valid' : null),
+              AppTextField(
+                controller: _emailController,
+                label: 'Email',
+                prefixIcon: Icons.email_rounded,
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) =>
+                    v == null || !v.contains('@') ? 'Email tidak valid' : null,
+              ),
               const SizedBox(height: 12),
-              AppTextField(controller: _passwordController, label: isEdit ? 'Password baru (opsional)' : 'Password', prefixIcon: Icons.lock_rounded, obscureText: true, validator: (v) {
-                if (!isEdit && (v == null || v.length < 6)) return 'Minimal 6 karakter';
-                if (isEdit && v != null && v.isNotEmpty && v.length < 6) return 'Minimal 6 karakter';
-                return null;
-              }),
+              AppTextField(
+                controller: _passwordController,
+                label: isEdit ? 'Password baru (opsional)' : 'Password',
+                prefixIcon: Icons.lock_rounded,
+                obscureText: true,
+                validator: (v) {
+                  if (!isEdit && (v == null || v.length < 6))
+                    return 'Minimal 6 karakter';
+                  if (isEdit && v != null && v.isNotEmpty && v.length < 6)
+                    return 'Minimal 6 karakter';
+                  return null;
+                },
+              ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _role,
+                initialValue: _role,
                 decoration: const InputDecoration(labelText: 'Role'),
                 items: const [
                   DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                  DropdownMenuItem(value: 'superadmin', child: Text('Superadmin')),
+                  DropdownMenuItem(
+                    value: 'superadmin',
+                    child: Text('Superadmin'),
+                  ),
                 ],
                 onChanged: (value) => setState(() => _role = value ?? _role),
               ),

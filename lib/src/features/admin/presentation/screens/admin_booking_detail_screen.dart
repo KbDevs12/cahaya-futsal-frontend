@@ -20,10 +20,12 @@ class AdminBookingDetailScreen extends ConsumerStatefulWidget {
   final String bookingId;
 
   @override
-  ConsumerState<AdminBookingDetailScreen> createState() => _AdminBookingDetailScreenState();
+  ConsumerState<AdminBookingDetailScreen> createState() =>
+      _AdminBookingDetailScreenState();
 }
 
-class _AdminBookingDetailScreenState extends ConsumerState<AdminBookingDetailScreen> {
+class _AdminBookingDetailScreenState
+    extends ConsumerState<AdminBookingDetailScreen> {
   late Future<AdminBookingSummary> _future;
   String? _status;
   bool _saving = false;
@@ -35,7 +37,9 @@ class _AdminBookingDetailScreenState extends ConsumerState<AdminBookingDetailScr
   }
 
   Future<AdminBookingSummary> _load() async {
-    final booking = await ref.read(adminRepositoryProvider).bookingDetail(widget.bookingId);
+    final booking = await ref
+        .read(adminRepositoryProvider)
+        .bookingDetail(widget.bookingId);
     _status = booking.bookingStatus;
     return booking;
   }
@@ -51,7 +55,9 @@ class _AdminBookingDetailScreenState extends ConsumerState<AdminBookingDetailScr
     final nextStatus = _status ?? booking.bookingStatus;
     setState(() => _saving = true);
     try {
-      await ref.read(adminRepositoryProvider).updateBookingStatus(booking.id, nextStatus);
+      await ref
+          .read(adminRepositoryProvider)
+          .updateBookingStatus(booking.id, nextStatus);
       if (!mounted) return;
       showSnack(context, 'Status booking berhasil diperbarui');
       ref.invalidate(adminBookingsProvider);
@@ -101,17 +107,40 @@ class _AdminBookingDetailScreenState extends ConsumerState<AdminBookingDetailScr
                       children: [
                         const SectionHeader(title: 'Informasi Booking'),
                         const SizedBox(height: 12),
-                        AdminInfoRow(label: 'Customer', value: booking.customerName),
-                        AdminInfoRow(label: 'Email', value: booking.customerEmail),
-                        AdminInfoRow(label: 'No. HP', value: booking.customerPhone),
-                        AdminInfoRow(label: 'Lapangan', value: booking.fieldName),
-                        AdminInfoRow(label: 'Tanggal', value: readableDate(booking.date)),
+                        AdminInfoRow(
+                          label: 'Customer',
+                          value: booking.customerName,
+                        ),
+                        AdminInfoRow(
+                          label: 'Email',
+                          value: booking.customerEmail,
+                        ),
+                        AdminInfoRow(
+                          label: 'No. HP',
+                          value: booking.customerPhone,
+                        ),
+                        AdminInfoRow(
+                          label: 'Lapangan',
+                          value: booking.fieldName,
+                        ),
+                        AdminInfoRow(
+                          label: 'Tanggal',
+                          value: readableDate(booking.date),
+                        ),
                         AdminInfoRow(
                           label: 'Jam',
-                          value: '${readableClock(booking.startTime)}-${readableClock(booking.endTime)}',
+                          value:
+                              '${readableClock(booking.startTime)}-${readableClock(booking.endTime)}',
                         ),
-                        AdminInfoRow(label: 'Durasi', value: '${booking.durationHrs.toStringAsFixed(booking.durationHrs.truncateToDouble() == booking.durationHrs ? 0 : 1)} jam'),
-                        AdminInfoRow(label: 'Total', value: formatRupiah(booking.amount)),
+                        AdminInfoRow(
+                          label: 'Durasi',
+                          value:
+                              '${booking.durationHrs.toStringAsFixed(booking.durationHrs.truncateToDouble() == booking.durationHrs ? 0 : 1)} jam',
+                        ),
+                        AdminInfoRow(
+                          label: 'Total',
+                          value: formatRupiah(booking.amount),
+                        ),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
@@ -132,14 +161,31 @@ class _AdminBookingDetailScreenState extends ConsumerState<AdminBookingDetailScr
                         const SectionHeader(title: 'Update Status'),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          value: _status ?? booking.bookingStatus,
-                          decoration: const InputDecoration(labelText: 'Status booking'),
+                          initialValue: _status ?? booking.bookingStatus,
+                          decoration: const InputDecoration(
+                            labelText: 'Status booking',
+                          ),
                           items: const [
-                            DropdownMenuItem(value: 'pending_payment', child: Text('Pending payment')),
-                            DropdownMenuItem(value: 'paid', child: Text('Paid')),
-                            DropdownMenuItem(value: 'confirmed', child: Text('Confirmed')),
-                            DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                            DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
+                            DropdownMenuItem(
+                              value: 'pending_payment',
+                              child: Text('Pending payment'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'paid',
+                              child: Text('Paid'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'confirmed',
+                              child: Text('Confirmed'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'completed',
+                              child: Text('Completed'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'cancelled',
+                              child: Text('Cancelled'),
+                            ),
                           ],
                           onChanged: (value) => setState(() => _status = value),
                         ),

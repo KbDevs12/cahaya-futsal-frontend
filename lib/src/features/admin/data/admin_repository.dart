@@ -329,6 +329,24 @@ class AdminRepository {
     );
   }
 
+  Future<List<int>> exportRangeReportExcel({String? from, String? to}) async {
+    final response = await _dio.get<List<int>>(
+      '/admin/reports/range/export',
+      queryParameters: {
+        if (from != null && from.isNotEmpty) 'from': from,
+        if (to != null && to.isNotEmpty) 'to': to,
+      },
+      options: Options(responseType: ResponseType.bytes),
+    );
+
+    if ((response.statusCode ?? 500) < 200 ||
+        (response.statusCode ?? 500) >= 300) {
+      throw Exception('Gagal membuat file Excel laporan');
+    }
+
+    return response.data ?? <int>[];
+  }
+
   Future<List<AdminAccountRow>> listAdmins() async {
     final response = await _dio.get<Map<String, dynamic>>('/admin/admins');
     return ApiResponse.parseData(

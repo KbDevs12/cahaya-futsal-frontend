@@ -106,7 +106,7 @@ class _PaymentFiltersState extends State<_PaymentFilters> {
           const SectionHeader(title: 'Filter Pembayaran'),
           const SizedBox(height: 12),
           DropdownButtonFormField<String?>(
-            value: status,
+            initialValue: status,
             decoration: const InputDecoration(labelText: 'Status pembayaran'),
             items: const [
               DropdownMenuItem(value: null, child: Text('Semua status')),
